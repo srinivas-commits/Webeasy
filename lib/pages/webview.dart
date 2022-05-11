@@ -34,12 +34,8 @@ class _WebViewClassState extends State<WebViewClass> {
     await flutterTts.awaitSpeakCompletion(true);
     await flutterTts.setQueueMode(1);
     var result;
-    result = await flutterTts.speak(text);
-    if (result == 1) {
-      setState(() {
-        _isPlaying = true;
-      });
-    }
+
+    result = flutterTts.speak(text);
   }
 
   void pauseSpeech() async {
@@ -68,18 +64,25 @@ class _WebViewClassState extends State<WebViewClass> {
         print(textualContent.runtimeType);
         print("length: " + textualContent.toString().length.toString());
         len = textualContent.toString().length;
-        if (len < 4000) {
+        if (len < 2000) {
           listenTospeech(textualContent.toString());
         } else {
-          div = (len / 4000).toInt();
+          div = (len / 2000).toInt();
           text = textualContent.toString();
 
-          for (i = 0; i < div; i++) {
+          setState(() {
+            _isPlaying = true;
+          });
+          for (i = 0; i <= div; i++) {
             var c = i + 1;
             try {
               print("start at: $i");
               print("end at: $c");
-              listenTospeech(text.substring(i * 4000, 4000 * c));
+              if (c * 2000 < len) {
+                listenTospeech(text.substring(i * 2000, 2000 * c));
+              } else {
+                listenTospeech(text.substring(i * 2000, len));
+              }
             } catch (err) {
               print(err);
             }
@@ -162,6 +165,7 @@ class _WebViewClassState extends State<WebViewClass> {
   }
 
   Widget goBack() {
+    flutterTts.stop();
     return FutureBuilder<WebViewController>(
         future: _controller.future,
         builder: (BuildContext context,
@@ -176,20 +180,6 @@ class _WebViewClassState extends State<WebViewClass> {
         });
   }
 
-  Widget _pitch() {
-    return Slider(
-      value: pitch,
-      onChanged: (newPitch) {
-        setState(() => pitch = newPitch);
-      },
-      min: 0.5,
-      max: 2.0,
-      divisions: 15,
-      label: "Pitch: $pitch",
-      activeColor: Colors.red,
-    );
-  }
-
   Widget _rate() {
     return Slider(
       value: rate,
@@ -200,7 +190,7 @@ class _WebViewClassState extends State<WebViewClass> {
       max: 1.0,
       divisions: 10,
       label: "Rate: $rate",
-      activeColor: Colors.blue,
+      activeColor: Colors.white,
     );
   }
 }
