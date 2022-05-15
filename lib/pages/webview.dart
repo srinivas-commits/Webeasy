@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -25,7 +26,7 @@ class _WebViewClassState extends State<WebViewClass> {
   var textualContent;
 
   final url =
-      "https://extractorapi.com/api/v1/extractor/?apikey=c1c45e2157e673755dd4e79c7905639431ab2557&url=";
+      "http://extractorapi.com/api/v1/extractor/?apikey=c1c45e2157e673755dd4e79c7905639431ab2557&url=";
 
   void listenTospeech(String text) async {
     await flutterTts.setLanguage('en-US');
@@ -35,7 +36,7 @@ class _WebViewClassState extends State<WebViewClass> {
     await flutterTts.setQueueMode(1);
     var result;
 
-    result = flutterTts.speak(text);
+    result = await flutterTts.speak(text);
   }
 
   void pauseSpeech() async {
@@ -51,50 +52,48 @@ class _WebViewClassState extends State<WebViewClass> {
     int len, div = 0, i = 0;
     String text = "";
     try {
-      print("printing the urls");
-      print(url + currentUrl);
+      // print("printing the urls");
+      // print(url + currentUrl);
       final response = await get(Uri.parse(url + currentUrl));
-
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
 
-        setState(() {
-          textualContent = jsonData["text"];
-        });
-        print(textualContent.runtimeType);
+        textualContent = jsonData["text"];
+
         print("length: " + textualContent.toString().length.toString());
         len = textualContent.toString().length;
         if (len < 2000) {
           listenTospeech(textualContent.toString());
         } else {
-          div = (len / 2000).toInt();
+          div = len ~/ 2000;
           text = textualContent.toString();
 
-          setState(() {
-            _isPlaying = true;
-          });
           for (i = 0; i <= div; i++) {
             var c = i + 1;
             try {
-              print("start at: $i");
-              print("end at: $c");
+              // print("start at: $i");
+              // print("end at: $c");
               if (c * 2000 < len) {
                 listenTospeech(text.substring(i * 2000, 2000 * c));
               } else {
                 listenTospeech(text.substring(i * 2000, len));
               }
             } catch (err) {
-              print(err);
+              ErrorSummary(err.toString());
+              // print(err);
             }
           }
         }
       } else {
-        print("error here in response");
-        print(response.body);
+        ErrorSummary("error in response body");
+        print("Hello at line 91");
+        // print("error here in response");
+        // print(response.body);
       }
     } catch (e) {
-      print("Hello");
-      print(e.toString());
+      ErrorSummary(e.toString());
+      // print("Hello");
+      // print(e.toString());
     }
   }
 
@@ -172,7 +171,7 @@ class _WebViewClassState extends State<WebViewClass> {
             AsyncSnapshot<WebViewController> controller) {
           return GestureDetector(
             onTap: () async {
-              print("go back pressed");
+              // print("go back pressed");
               await controller.data?.goBack();
             },
             child: const Icon(Icons.arrow_back),

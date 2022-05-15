@@ -7,7 +7,6 @@ void main() async {
 
   await Permission.camera.request();
   await Permission.microphone.request();
-
   runApp(const MyApp());
 }
 
